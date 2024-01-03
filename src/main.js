@@ -1,19 +1,20 @@
-import Phaser from 'phaser'
+import Phaser from 'phaser';
 
-import HelloWorldScene from './HelloWorldScene'
+import Menu from './Menu';
+import Game from './Game';
 
 const config = {
-	type: Phaser.AUTO,
-	parent: 'app',
-	width: 800,
-	height: 600,
-	physics: {
-		default: 'arcade',
-		arcade: {
-			gravity: { y: 200 },
-		},
-	},
-	scene: [HelloWorldScene],
-}
+  type: Phaser.AUTO,
+  parent: 'app',
+  width: 1024,
+  height: 768,
+  physics: {
+    default: 'arcade',
+    arcade: {
+      debug:true
+    },
+  },
+  scene: [Menu,Game],
+};
 
-export default new Phaser.Game(config)
+export default new Phaser.Game(config);
