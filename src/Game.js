@@ -20,6 +20,7 @@ export default class Game extends Phaser.Scene {
     this.load.image('player', 'sprites/ship.png');
     this.load.image('enemy', 'sprites/asteroid.png');
     this.load.image('projectile', 'sprites/shoot.png');
+    this.load.image('star', 'images/star.png');
   }
 
   create() {
@@ -66,6 +67,18 @@ export default class Game extends Phaser.Scene {
       },
       loop: true,
     });
+
+    // Создание системы частиц для звёздного поля
+    const particles = this.add.particles('star');
+    this.starfieldEmitter = particles.createEmitter({
+      x: { min: 0, max: +this.sys.game.config.width },
+      y: { min: 0, max: +this.sys.game.config.height },
+      lifespan: 500,
+      speedX: { min: -100, max: -300 },
+      scale: { start: 0.03, end: 0 },
+      quantity: 5,
+      blendMode: 'ADD',
+    });
   }
 
   projectileEnemyCollision(projectile, enemy) {
@@ -84,6 +97,12 @@ export default class Game extends Phaser.Scene {
       (projectile) => projectile.active
     );
     this.enemies = this.enemies.filter((enemy) => enemy.active);
+    // Обновление системы частиц в зависимости от скорости игрока
+    if (this.player && this.player.body) {
+      const speed = this.player.body.velocity.length(); // Используйте метод length()
+      const speedX = speed > 0 ? -200 - speed : -200;
+      this.starfieldEmitter.setSpeedX(Phaser.Math.Clamp(speedX, -300, -100));
+    }
   }
 
   spawnEnemy() {
