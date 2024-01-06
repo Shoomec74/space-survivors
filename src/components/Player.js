@@ -10,6 +10,7 @@ export default class Player extends Phaser.GameObjects.GameObject {
     this.speed = data.speed || 200;
     this.weapons = []; // Массив оружия
     this.level = 1; // Уровень игрока
+    this.health = data.health;
     // Создаем клавиши управления
     this.cursors = scene.input.keyboard.createCursorKeys();
     // Инициализация и другие свойства...
