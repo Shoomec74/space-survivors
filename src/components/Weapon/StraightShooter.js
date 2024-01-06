@@ -13,11 +13,13 @@ export default class StraightShooter extends Phaser.GameObjects.GameObject {
       player.x,
       player.y,
       projectileSprite
-    );
+    ).setScale(0.1, 0.1);
     let velocity = new Phaser.Math.Vector2(
       player.body.velocity.x,
       player.body.velocity.y
     );
+
+    projectile.postFX.addBloom(0xffffff, 1, 1, 3, 1.2); // Эффект bloom
 
     if (velocity.length() === 0) {
       // Если игрок стоит на месте, стреляем в каком-то стандартном направлении, например, вверх
