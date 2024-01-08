@@ -8,7 +8,7 @@ export default class StraightShooter extends Phaser.GameObjects.GameObject {
     this.projectiles = [];
   }
 
-  fire(player, projectileSprite) {
+  fire(player, projectileSprite,pl) {
     let projectile = this.scene.physics.add.image(
       player.x,
       player.y,
@@ -23,7 +23,8 @@ export default class StraightShooter extends Phaser.GameObjects.GameObject {
 
     if (velocity.length() === 0) {
       // Если игрок стоит на месте, стреляем в каком-то стандартном направлении, например, вверх
-      velocity.y = -this.speed;
+      velocity.x = this.speed * pl.directionX;
+      velocity.y = this.speed * pl.directionY;
     } else {
       // Нормализация вектора скорости и умножение на скорость снаряда
       velocity.normalize().scale(this.speed);
