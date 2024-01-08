@@ -85,7 +85,7 @@ export default class Game extends Phaser.Scene {
         // Цикл по всем оружиям у игрока
         this.player.weapons.forEach((weapon) => {
           // Выстрел оружием, создание снаряда и сохранение его в переменную 'project'
-          const project = weapon.fire(this.player.player, 'projectile');
+          const project = weapon.fire(this.player.player, 'projectile',this.player);
 
           // Цикл по всем врагам на сцене
           this.enemies.forEach((enemy) => {
