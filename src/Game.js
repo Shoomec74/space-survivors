@@ -57,7 +57,7 @@ export default class Game extends Phaser.Scene {
     const initialPlayer = this.physics.add
       .image(400, 300, 'player')
       .setScale(0.5, 0.5)
-      .setCollideWorldBounds(true);
+      .setCollideWorldBounds(false);
     // Создание и настройка оружия игрока
     this.weapon = new StraightShooter(this, 600);
     // параметры игрока
@@ -85,7 +85,11 @@ export default class Game extends Phaser.Scene {
         // Цикл по всем оружиям у игрока
         this.player.weapons.forEach((weapon) => {
           // Выстрел оружием, создание снаряда и сохранение его в переменную 'project'
-          const project = weapon.fire(this.player.player, 'projectile',this.player);
+          const project = weapon.fire(
+            this.player.player,
+            'projectile',
+            this.player
+          );
 
           // Цикл по всем врагам на сцене
           this.enemies.forEach((enemy) => {
@@ -104,28 +108,20 @@ export default class Game extends Phaser.Scene {
       loop: true, // Указание на то, что таймер должен выполняться повторно (зациклен)
     });
 
-    // Создание системы частиц для звёздного поля
-    this.add.particles(1, 1, 'star', {
-      x: { min: 0, max: +this.sys.game.config.width },
-      y: { min: 0, max: +this.sys.game.config.height },
-      lifespan: 500,
-      speedX: { min: -100, max: -300 },
-      scale: { start: 0.03, end: 0 },
-      quantity: 5,
-      blendMode: 'ADD'
-    }).setDepth(-1);
+    // Создание эмиттера частиц
+    this.starfieldEmitter = this.add
+      .particles(1, 1, 'star', {
+        x: { min: 0, max: this.cameras.main.width },
+        y: { min: 0, max: this.cameras.main.height },
+        lifespan: 5000,
+        speedX: -100, // Начальная скорость частиц
+        scale: { start: 0.03, end: 0 },
+        quantity: 2,
+        blendMode: 'ADD',
+      })
+      .setDepth(-1);
 
-    //particles.createEmitter();
-
-    // this.starfieldEmitter = particles.createEmitter({
-    //   x: { min: 0, max: +this.sys.game.config.width },
-    //   y: { min: 0, max: +this.sys.game.config.height },
-    //   lifespan: 500,
-    //   speedX: { min: -100, max: -300 },
-    //   scale: { start: 0.03, end: 0 },
-    //   quantity: 5,
-    //   blendMode: 'ADD',
-    // });
+    this.cameras.main.startFollow(this.player.player);
   }
 
   projectileEnemyCollision(projectile, enemy) {
@@ -150,25 +146,64 @@ export default class Game extends Phaser.Scene {
       enemy.moveToPlayer(delta, this.player.player); // Используем объект player из класса Player
     });
     this.player.weapons.forEach((weapon) => weapon.update(delta, this.player));
+
     // Удаляем уничтоженные снаряды и врагов из их массивов
     this.weapon.projectiles = this.weapon.projectiles.filter(
       (projectile) => projectile.active
     );
     this.enemies = this.enemies.filter((enemy) => enemy.active);
-    // Обновление системы частиц в зависимости от скорости игрока
-    if (this.player && this.player.body) {
-      const speed = this.player.body.velocity.length(); // Используйте метод length()
-      const speedX = speed > 0 ? -200 - speed : -200;
-      this.starfieldEmitter.setSpeedX(Phaser.Math.Clamp(speedX, -300, -100));
-    }
-  }
-  // Функция для создания врагов в случайных местах сцены
 
+    // Обновление положения эмиттера частиц, чтобы он следовал за камерой
+    this.starfieldEmitter.setPosition(
+      this.cameras.main.scrollX,
+      this.cameras.main.scrollY
+    );
+  }
+
+  // Функция для создания врагов в случайных местах сцены
   spawnEnemy() {
+    const screenWidth = this.cameras.main.width;
+    const screenHeight = this.cameras.main.height;
+
+    // Генерируем случайные координаты X и Y
+    let x, y;
+    const side = Phaser.Math.Between(0, 3);
+
+    if (side === 0) {
+      // Точка респауна с верхней стороны камеры
+      x = Phaser.Math.Between(
+        this.cameras.main.scrollX,
+        this.cameras.main.scrollX + screenWidth
+      );
+      y = this.cameras.main.scrollY - 20;
+    } else if (side === 1) {
+      // Точка респауна с нижней стороны камеры
+      x = Phaser.Math.Between(
+        this.cameras.main.scrollX,
+        this.cameras.main.scrollX + screenWidth
+      );
+      y = this.cameras.main.scrollY + screenHeight + 20;
+    } else if (side === 2) {
+      // Точка респауна с правой стороны камеры
+      x = this.cameras.main.scrollX + screenWidth + 20;
+      y = Phaser.Math.Between(
+        this.cameras.main.scrollY,
+        this.cameras.main.scrollY + screenHeight
+      );
+    } else {
+      // Точка респауна с левой стороны камеры
+      x = this.cameras.main.scrollX - 20;
+      y = Phaser.Math.Between(
+        this.cameras.main.scrollY,
+        this.cameras.main.scrollY + screenHeight
+      );
+    }
+
+    // Создаем врага с заданными параметрами
     let enemy = new Enemy(
       this,
-      Phaser.Math.Between(-50, +this.sys.game.config.width + 50),
-      Phaser.Math.Between(-50, +this.sys.game.config.height + 50),
+      x,
+      y,
       'enemy', // Текстура
       Phaser.Math.Between(100, 150), // Скорость
       1, // Здоровье
@@ -176,7 +211,7 @@ export default class Game extends Phaser.Scene {
       0.3
     );
 
-    // Обработка столкновений
+    // Обработка столкновений, если необходимо
     this.physics.add.overlap(
       this.player.player,
       enemy,
@@ -185,14 +220,15 @@ export default class Game extends Phaser.Scene {
       this
     );
 
+    // Добавляем врага в массив врагов
     this.enemies.push(enemy);
   }
 
   // Функция для отображения координат курсора на экране
   getCoordText() {
-    const coordText = this.add.text(10, 10, `x:0, y:0`);
+    const coordText = this.add.text(10, 10, `x:0, y:0`).setScrollFactor(0);
     this.input.on('pointermove', function (pointer) {
-      coordText.setText(`x:${pointer.x}, y:${pointer.y}`);
+      coordText.setText(`x:${this.cameras.main.x}, y:${this.cameras.main.y}`);
     });
   }
 
@@ -233,12 +269,12 @@ export default class Game extends Phaser.Scene {
   // Остановка игры и возвращение в главное меню
   showGameOverDialog() {
     // Создаем и отображаем диалоговое окно
-    const dialog = this.add.text(
-      400,
-      300,
-      'Вы проиграли! Нажмите OK для возврата в главное меню',
-      { fontSize: '16px', color: '#fff' }
-    );
+    const dialog = this.add
+      .text(300, 400, 'Вы проиграли! Нажмите OK для возврата в главное меню', {
+        fontSize: '16px',
+        color: '#fff',
+      })
+      .setScrollFactor(0);
     dialog.setOrigin(0.5, 0.5);
 
     // Обработка нажатия на диалоговое окно
