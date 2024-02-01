@@ -113,8 +113,8 @@ export default class Game extends Phaser.Scene {
       .particles(1, 1, 'star', {
         x: { min: 0, max: this.cameras.main.width },
         y: { min: 0, max: this.cameras.main.height },
-        lifespan: 5000,
-        speedX: -100, // Начальная скорость частиц
+        lifespan: 100,
+        speedX: -1000, // Начальная скорость частиц
         scale: { start: 0.03, end: 0 },
         quantity: 2,
         blendMode: 'ADD',
