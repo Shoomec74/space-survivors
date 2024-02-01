@@ -10,10 +10,13 @@ export default class Player extends Phaser.GameObjects.GameObject {
     this.speed = data.speed || 200;
     this.weapons = []; // Массив оружия
     this.level = 1; // Уровень игрока
+    this.health = data.health;
     // Создаем клавиши управления
     this.cursors = scene.input.keyboard.createCursorKeys();
     // Инициализация и другие свойства...
     this.lastMoveDirection = new Phaser.Math.Vector2(0, -1); // Начальное направление вверх
+    this.directionX = 0
+    this.directionY = -1
   }
 
   addWeapon(weapon) {
@@ -35,14 +38,22 @@ export default class Player extends Phaser.GameObjects.GameObject {
 
     if (this.cursors.left.isDown) {
       velocityX = -300;
+      this.directionX = -1
+      this.directionY = 0
     } else if (this.cursors.right.isDown) {
       velocityX = 300;
+      this.directionX = 1
+      this.directionY = 0
     }
 
     if (this.cursors.up.isDown) {
       velocityY = -300;
+      this.directionX = 0
+      this.directionY = -1
     } else if (this.cursors.down.isDown) {
       velocityY = 300;
+      this.directionX = 0
+      this.directionY = 1
     }
 
     // Нормализация вектора скорости, если игрок движется по диагонали
